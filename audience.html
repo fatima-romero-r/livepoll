@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Vote</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+</head>
+<body>
+  <h1 id="question"></h1>
+  <div id="options"></div>
+
+  <script>
+    const questionId = "q1";
+
+    db.ref("polls/" + questionId).once("value").then(snapshot => {
+      const data = snapshot.val();
+      document.getElementById("question").innerText = data.text;
+
+      const optionsDiv = document.getElementById("options");
+      Object.keys(data.votes).forEach(option => {
+        const btn = document.createElement("button");
+        btn.innerText = option;
+        btn.onclick = () => {
+          db.ref("polls/" + questionId + "/votes/" + option).transaction(v => (v || 0) + 1);
+          btn.disabled = true;
+        };
+        optionsDiv.appendChild(btn);
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Live Chart</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+</head>
+<body>
+  <h1>Pre vs Post Chart</h1>
+  <canvas id="myChart" width="400" height="200"></canvas>
+
+  <script>
+    const preId = "q1";
+    const postId = "q2";
+
+    const ctx = document.getElementById("myChart").getContext("2d");
+    const chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: [],
+        datasets: [
+          { label: "Pre", data: [], backgroundColor: "rgba(0,123,255,0.5)" },
+          { label: "Post", data: [], backgroundColor: "rgba(40,167,69,0.5)" }
+        ]
+      },
+      options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    });
+
+    function updateData(snapshot, datasetIndex) {
+      const data = snapshot.val();
+      const votes = data.votes || {};
+      chart.data.labels = Object.keys(votes);
+      chart.data.datasets[datasetIndex].data = Object.values(votes);
+      chart.update();
+    }
+
+    db.ref("polls/" + preId).on("value", snap => updateData(snap, 0));
+    db.ref("polls/" + postId).on("value", snap => updateData(snap, 1));
+  </script>
+</body>
+</html>
