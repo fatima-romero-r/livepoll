@@ -5,39 +5,73 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-  <script src="firebase-config.js"></script>
+<script type="module" src="firebase-config.js"></script>
+</head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Real-time Pre & Post Poll</title>
 </head>
 <body>
-  <h1>Pre vs Post Chart</h1>
-  <canvas id="myChart" width="400" height="200"></canvas>
+  <h2>Pre vs Post Poll Results</h2>
+  
+  <!-- Chart container -->
+  <canvas id="resultsChart" width="400" height="200"></canvas>
+  
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <script>
-    const preId = "q1";
-    const postId = "q2";
+    // Your Firebase config
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "SENDER_ID",
+      appId: "APP_ID"
+    };
 
-    const ctx = document.getElementById("myChart").getContext("2d");
-    const chart = new Chart(ctx, {
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Reference to your poll data in Realtime Database
+    const preRef = db.ref('poll/pre');
+    const postRef = db.ref('poll/post');
+
+    // Setup Chart.js bar chart
+    const ctx = document.getElementById('resultsChart').getContext('2d');
+    const resultsChart = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: [],
+        labels: ['Question 1'], // example question label
         datasets: [
-          { label: "Pre", data: [], backgroundColor: "rgba(0,123,255,0.5)" },
-          { label: "Post", data: [], backgroundColor: "rgba(40,167,69,0.5)" }
+          {
+            label: 'Pre Test',
+            backgroundColor: 'rgba(54, 162, 235, 0.7)',
+            data: [0],
+          },
+          {
+            label: 'Post Test',
+            backgroundColor: 'rgba(255, 99, 132, 0.7)',
+            data: [0],
+          },
         ]
       },
-      options: { responsive: true, scales: { y: { beginAtZero: true } } }
+      options: {
+        responsive: true,
+        scales: { y: { beginAtZero: true, max: 100 } },
+        animation: false
+      }
     });
 
-    function updateData(snapshot, datasetIndex) {
-      const data = snapshot.val();
-      const votes = data.votes || {};
-      chart.data.labels = Object.keys(votes);
-      chart.data.datasets[datasetIndex].data = Object.values(votes);
-      chart.update();
-    }
+    // Listen for realtime updates on pr
 
-    db.ref("polls/" + preId).on("value", snap => updateData(snap, 0));
-    db.ref("polls/" + postId).on("value", snap => updateData(snap, 1));
-  </script>
-</body>
 </html>
